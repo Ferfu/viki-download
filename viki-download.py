@@ -1,4 +1,6 @@
+from __future__ import unicode_literals
 import youtube_dl
+
 
 while True:
     ep1 = input('Copy + paste the URL of the FIRST episode of the series:\n')
