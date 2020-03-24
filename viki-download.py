@@ -36,6 +36,30 @@ while True:
     except:
         print('Not a valid list of episodes')
 
-ydl_opts = {"writesubtitles": True}
+sub = False
+subLang = 'en'
+while True:
+    subIn = input('Download subtitles? [y/n]\n')
+    if subIn == 'y':
+        sub = True
+        while True:
+            subLangIn = input('English or Simplified Chinese? [e/c]\n')
+            if subLangIn == 'e':
+                break
+            elif subLangIn == 'c':
+                subLang = 'zh'
+                break
+            else:
+                print('Invalid input\n')
+        break
+    elif subIn == 'n':
+        break
+    else:
+        print('Invalid input')
+
+
+
+
+ydl_opts = {"writesubtitles": sub, "subtitleslangs": [subLang]}
 with youtube_dl.YoutubeDL(ydl_opts) as ydl:
     ydl.download(epList)
