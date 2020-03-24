@@ -36,5 +36,6 @@ while True:
     except:
         print('Not a valid list of episodes')
 
-with youtube_dl.YoutubeDL() as ydl:
+ydl_opts = {"writesubtitles": True}
+with youtube_dl.YoutubeDL(ydl_opts) as ydl:
     ydl.download(epList)
