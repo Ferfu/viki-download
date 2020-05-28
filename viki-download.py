@@ -43,11 +43,14 @@ while True:
     if subIn == 'y':
         sub = True
         while True:
-            subLangIn = input('English or Simplified Chinese? [e/c]\n')
+            subLangIn = input('English, Simplified Chinese, or Indonesian? [e/c/i]\n')
             if subLangIn == 'e':
                 break
             elif subLangIn == 'c':
                 subLang = 'zh'
+                break
+            elif subLangIn == 'i':
+                subLang = 'id'
                 break
             else:
                 print('Invalid input\n')
