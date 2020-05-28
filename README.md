@@ -9,4 +9,4 @@ Prerequisites: Python 3.x, and ```youtube_dl```, which can be installed by runni
 Download ```viki-download.py```, run, and follow on-screen instructions  
 - ```viki-download.exe```  
 Prerequisites: Windows  
-Download ```vikidownload.exe```, run, and follow on-screen instructions.  
+Download ```viki-download.exe```, run, and follow on-screen instructions.  
