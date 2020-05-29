@@ -1,6 +1,22 @@
 from __future__ import unicode_literals
 import youtube_dl
 
+# login
+while True:
+    login = input('\nLogin? [y/n]\n')
+    if login == 'y':
+        login = True
+        break
+    elif login == 'n':
+        login = False
+        break
+    else:
+        print('\nInvalid input\n')
+
+if login:
+    username = input('\nUsername: ')
+    password = input('\Password: ')
+
 # playlist url
 while True:
     url = input('\nEnter the URL of the HOME PAGE of the series (e.g. https://www.viki.com/tv/36667c-hotel-del-luna):\n')
@@ -36,8 +52,9 @@ if downloadSubs == True:
         ydl.extract_info(url, download=False)
     subLang = input("\nEnter subtitle language. Note some subtitle langauges are not available for all episodes.\n")
 
-
 options = {
+    "username": username,
+    "password": password,
     "writesubtitles": downloadSubs,
     "subtitleslangs": [subLang],
     "playliststart": start,
