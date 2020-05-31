@@ -18,29 +18,7 @@ def toggleEntry():
 def askDirectory():
     location = tk.filedialog.askdirectory()
     locationLabel.config(text = location)
-def getVideoInfo():
-    urlButton.config(text = "Extracting video info", state = "disabled")
-    try:
-        with youtube_dl.YoutubeDL() as ydl:
-            playlistInfo = ydl.extract_info(urlEntry.get(), download=False)
-            i = 1
-            for video in playlistInfo['entries']:
-                for subtitle in video.get('subtitles').keys():
-                    if langDict[subtitle] not in subtitleList:
-                        subtitleList.append(langDict[subtitle])
-                videoList[video.get('title')] = [i, tk.BooleanVar()]
-                i += 1
-            subtitleList.sort()
-            for video in videoList:
-                tk.Checkbutton(videoListFrame, text = video, var = videoList[video][1]).pack(anchor = "w")
-            subtitleList.insert(0, "No subtitle")
-            subtitleSelected.set(subtitleList[0])
-            subtitleMenu = tk.OptionMenu(subtitleFrame, subtitleSelected, *subtitleList).pack()
-    except:
-        tk.messagebox.showerror(title="Error", message="Invalid URL")
-        urlEntry.delete(0, tk.END)
-        urlEntry.insert(0, "")
-        urlButton.config(text = "Extract video info", state = "normal")
+
 def selectAll():
     for video in videoList:
         videoList[video[1]].set(True)
@@ -65,25 +43,31 @@ def download():
         }
         with youtube_dl.YoutubeDL(ydl_options) as ydl:
             ydl.download([urlEntry.get()])
+        restoreButtons()
     else:
         tk.messagebox.showerror("Error", "No URL given")
 
 
-m = tk.Tk()
-m.geometry()
-m.title("viki-download-gui")
+
 videoList = {}
 subtitleList = []
 location = os.getcwd()
 
-loginFrame = tk.Frame(m)
-urlFrame = tk.Frame(m)
-videoFrame = tk.Frame(m)
-videoListFrame = tk.Frame(m, height=300, width=300)
-subtitleFrame = tk.Frame(m)
-locationFrame = tk.Frame(m)
-downloadFrame = tk.Frame(m)
+
+
+# ------------------------------------------------------- UI -------------------------------------------------------
+
+m = tk.Tk()
+m.geometry()
+m.title("viki-download-gui")
+
+
+
+
+# login
+
 '''
+loginFrame = tk.Frame(m)
 login = tk.BooleanVar()
 loginCheck = tk.Checkbutton(m, text = "Login to Viki account", var = login, command = toggleEntry).grid(row = 0, column = 0)
 usernameLabel = tk.Label(loginFrame, text = "Username").grid(row = 0, column = 0)
@@ -92,34 +76,77 @@ usernameEntry.grid(row = 0, column = 1)
 passwordLabel = tk.Label(loginFrame, text = "Password").grid(row = 1, column = 0)
 passwordEntry = tk.Entry(loginFrame, state = "disabled")
 passwordEntry.grid(row = 1, column = 1)
+loginFrame.grid(row = 0, column = 1)
 '''
-urlLabel = tk.Label(m, text = "Drama homepage URL").grid(row = 1, column = 0)
-urlEntry = tk.Entry(urlFrame)
-urlEntry.pack(side = tk.LEFT)
-urlButton = tk.Button(urlFrame, text = "Extract video info", command = lambda: threading.Thread(target = getVideoInfo).start())
-urlButton.pack(side = tk.LEFT)
 
+
+# url entry and video info extraction
+
+def getVideoInfo():
+    try: # for when the URL is valid
+        urlButton.config(text = "Extracting video info", state = "disabled")
+        with youtube_dl.YoutubeDL() as ydl:
+            playlistInfo = ydl.extract_info(urlEntry.get(), download=False)
+        for i, video in enumerate(playlistInfo['entries']):
+            videoList[video.get('title')] = [i, tk.BooleanVar()] # adding entry to dictionary, with title as key and index + False as value
+            for subtitle in video.get('subtitles').keys(): # adding subtitle language to list if it isn't already present
+                if langDict[subtitle] not in subtitleList:
+                    subtitleList.append(langDict[subtitle])
+        subtitleList.sort() # sorting list of languages alphabetically
+        for video in videoList: # creating a checkbox for every video in playlist
+            tk.Checkbutton(videoListFrame, text = video, var = videoList[video][1]).pack(anchor = "w")
+        subtitleList.insert(0, "No subtitle") # allow selecting no subtitle as an option
+        subtitleSelected.set(subtitleList[0]) # set default option to no subtitle
+        subtitleMenu = tk.OptionMenu(subtitleFrame, subtitleSelected, *subtitleList).pack() # creating dropdown menu to select subtitle
+        restoreButtons()
+    except: # for when the URL is invalid
+        restoreButtons()
+        tk.messagebox.showerror(title="Error", message="Invalid URL")
+        urlEntry.delete(0, tk.END)
+        urlEntry.insert(0, "")
+def restoreButtons():
+    urlButton.config(text = "Extract video info", state = "normal")
+    downloadButton.config(text = "Download", state = "normal")
+
+urlFrame = tk.Frame(m)
+urlLabel = tk.Label(m, text = "Drama homepage URL").grid(row = 1, column = 0)
+urlEntry = tk.Entry(urlFrame, width = 50)
+urlEntry.pack(side = tk.LEFT)
+videoList = {}
+subtitleList = []
+urlButton = tk.Button(urlFrame, text = "Extract video info", command = lambda: threading.Thread(target = getVideoInfo, args = ()).start())
+urlButton.pack(side = tk.LEFT)
+urlFrame.grid(row = 1, column = 1)
+
+# video selection
+
+videoFrame = tk.Frame(m)
 videoLabel = tk.Label(videoFrame, text = "Select videos").pack()
 selectAll = tk.Button(videoFrame, text = "Select all", command = selectAll).pack()
 deselectAll = tk.Button(videoFrame, text = "Deselect all", command = deselectAll).pack()
+videoListFrame = tk.Frame(m, height=300, width=300)
+videoFrame.grid(row = 2, column = 0)
+videoListFrame.grid(row = 2, column = 1)
 
+# subtitle selection
+
+subtitleFrame = tk.Frame(m)
 subtitleLabel = tk.Label(m, text = "Select subtitle").grid(row = 3, column = 0)
 subtitleSelected = tk.StringVar()
+subtitleFrame.grid(row = 3, column = 1)
 
-locationButton = tk.Button(m, text = "Select download location", command = askDirectory).grid(row = 4, column = 0)
+
+# file location selection
+
+locationFrame = tk.Frame(m)
 locationLabel = tk.Label(locationFrame, text = location)
 locationLabel.pack()
+locationButton = tk.Button(m, text = "Select download location", command = askDirectory).grid(row = 4, column = 0)
+locationFrame.grid(row = 4, column = 1)
 
+# download
 
 downloadButton = tk.Button(m, text = "Start Download", command = lambda: threading.Thread(target = download).start())
 downloadButton.grid(row = 5, columnspan = 2)
-
-#loginFrame.grid(row = 0, column = 1)
-urlFrame.grid(row = 1, column = 1)
-videoFrame.grid(row = 2, column = 0)
-videoListFrame.grid(row = 2, column = 1)
-subtitleFrame.grid(row = 3, column = 1)
-locationFrame.grid(row = 4, column = 1)
-downloadFrame.grid(row = 5, column = 1)
 
 m.mainloop()
