@@ -20,30 +20,27 @@ def askDirectory():
     locationLabel.config(text = location)
 def getVideoInfo():
     urlButton.config(text = "Extracting video info", state = "disabled")
-    #try:
-    with youtube_dl.YoutubeDL() as ydl:
-        playlistInfo = ydl.extract_info(urlEntry.get(), download=False)
-        i = 1
-        for video in playlistInfo['entries']:
-            for subtitle in video.get('subtitles').keys():
-                if langDict[subtitle] not in subtitleList:
-                    subtitleList.append(langDict[subtitle])
-            videoList[video.get('title')] = [i, tk.BooleanVar()]
-            i += 1
-        subtitleList.sort()
-        requiredFields["url"] = True
-    for video in videoList:
-        print(video, videoList[video][0], videoList[video][1].get())
-    '''
+    try:
+        with youtube_dl.YoutubeDL() as ydl:
+            playlistInfo = ydl.extract_info(urlEntry.get(), download=False)
+            i = 1
+            for video in playlistInfo['entries']:
+                for subtitle in video.get('subtitles').keys():
+                    if langDict[subtitle] not in subtitleList:
+                        subtitleList.append(langDict[subtitle])
+                videoList[video.get('title')] = [i, tk.BooleanVar()]
+                i += 1
+            subtitleList.sort()
+            for video in videoList:
+                tk.Checkbutton(videoListFrame, text = video, var = videoList[video][1]).pack(anchor = "w")
+            subtitleList.insert(0, "No subtitle")
+            subtitleSelected.set(subtitleList[0])
+            subtitleMenu = tk.OptionMenu(subtitleFrame, subtitleSelected, *subtitleList).pack()
     except:
         tk.messagebox.showerror(title="Error", message="Invalid URL")
-    '''
-    urlButton.config(text = "Extract video info", state = "normal")
-    for video in videoList:
-        tk.Checkbutton(videoListFrame, text = video, var = videoList[video][1]).pack(anchor = "w")
-    subtitleList.insert(0, "No subtitle")
-    subtitleSelected.set(subtitleList[0])
-    subtitleMenu = tk.OptionMenu(subtitleFrame, subtitleSelected, *subtitleList).pack()
+        urlEntry.delete(0, tk.END)
+        urlEntry.insert(0, "")
+        urlButton.config(text = "Extract video info", state = "normal")
 def selectAll():
     for video in videoList:
         videoList[video[1]].set(True)
@@ -51,27 +48,30 @@ def deselectAll():
     for video in videoList:
         videoList[video[1]].set(False)
 def download():
-    videoSelected = []
-    for video in videoList:
-        if videoList[video][1].get():
-            videoSelected.append(videoList[video][0])
-    print(videoSelected)
-    downloadButton.config(text = "Downloading. Check terminal for progerss", state = "disabled")
-    '''
-    ydl_options = {
-        "playlist-items": ,
-        "subtitles": ,
-        "outmpl"
-    }
+    if urlEntry.get():
+        videoSelected = ""
+        for video in videoList:
+            if videoList[video][1].get():
+                videoSelected += str(videoList[video][0]) + ","
+        videoSelected = videoSelected[:-1]
+        if subtitleSelected.get() == "No subtitle":
+            subtitleSelected.set("")
+        else:
+            subtitleSelected.set(list(langDict.keys())[list(langDict.values()).index(subtitleSelected.get())])
+        downloadButton.config(text = "Downloading. Check terminal for progerss", state = "disabled")
+        ydl_options = {
+            "playlist_items": videoSelected,
+            "subtitleslangs": [subtitleSelected],
+        }
+        with youtube_dl.YoutubeDL(ydl_options) as ydl:
+            ydl.download([urlEntry.get()])
+    else:
+        tk.messagebox.showerror("Error", "No URL given")
 
-    with youtube_dl.YoutubeDL() as ydl:
-        ydl.download([urlEntry.get()])
-    '''
 
 m = tk.Tk()
 m.geometry()
 m.title("viki-download-gui")
-requiredFields = {"url": False}
 videoList = {}
 subtitleList = []
 location = os.getcwd()
